@@ -16,7 +16,7 @@ if not api_key:
     st.error("⚠️ GEMINI_API_KEY not found! Please add it to Streamlit Secrets.")
     st.stop()
 
-model = genai.GenerativeModel('gemini-1.5-pro-latest')
+model = genai.GenerativeModel('gemini-1.5-flash-latest')
 genai.configure(api_key=api_key)
 model = genai.GenerativeModel('gemini-1.5-flash')
 
