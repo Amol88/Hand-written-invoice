@@ -16,7 +16,7 @@ class Invoice(BaseModel):
     items: list[Item]
     taxable_amount: str; gst_amount: str; round_off: str; gross_amount: str
 
-# 2. EXACT FORMATTING GENERATOR (Fast & Short)
+# 2. EXACT FORMATTING GENERATOR
 def create_word_invoice(data):
     doc = Document()
     style = doc.styles['Normal']
@@ -69,7 +69,7 @@ if img_file and st.button("🚀 Fast Convert"):
     with st.spinner("Extracting & Formatting..."):
         try:
             res = client.interactions.create(
-                model="gemini-1.5-flash", # Fastest model for quick conversion
+                model="gemini-3.5-flash", # FIXED: Wapas aapke account ka sahi model name daal diya hai
                 input=[
                     {"type": "text", "text": "Extract invoice data exactly as per schema."},
                     {"type": "image", "data": base64.b64encode(img_file.getvalue()).decode("utf-8"), "mime_type": img_file.type}
