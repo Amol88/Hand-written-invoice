@@ -9,7 +9,7 @@ from pydantic import BaseModel, Field
 from typing import List
 
 # ---------------------------------------------------------
-# 1. STRUCTURED OUTPUT SCHEMA (For 100% Accurate Formatting)
+# 1. STRUCTURED OUTPUT SCHEMA
 # ---------------------------------------------------------
 class InvoiceItem(BaseModel):
     sno: str = Field(description="Serial number")
@@ -36,13 +36,11 @@ class InvoiceData(BaseModel):
 st.set_page_config(page_title="Handwritten to Word Invoice", layout="centered")
 st.title("📄 Handwritten Invoice to Word Document")
 
-# Secret Key Check
 api_key = st.secrets.get("GEMINI_API_KEY") 
 if not api_key:
     st.error("⚠️ GEMINI_API_KEY not found in Secrets.")
     st.stop()
 
-# Initialize Client
 client = genai.Client(api_key=api_key)
 
 def extract_data_from_image(image_file):
@@ -51,9 +49,9 @@ def extract_data_from_image(image_file):
     mime_type = image_file.type 
     
     try:
-        # Changed to the most stable and fastest production model
+        # Changed to exactly what the API suggested: gemini-3.5-flash
         interaction = client.interactions.create(
-            model="gemini-1.5-flash", 
+            model="gemini-3.5-flash", 
             input=[
                 {"type": "text", "text": "Extract all data from this handwritten invoice exactly as per the schema."},
                 {"type": "image", "data": image_b64, "mime_type": mime_type}
