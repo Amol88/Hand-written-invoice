@@ -4,14 +4,12 @@ import json
 import io
 from PIL import Image
 from docxtpl import DocxTemplate
-
-# Nayi Gemini library aur Pydantic import karna
 from google import genai
 from pydantic import BaseModel, Field
 from typing import List
 
 # ---------------------------------------------------------
-# 1. STRUCTURED OUTPUT SCHEMA (Isse AI 100% perfect data dega)
+# 1. STRUCTURED OUTPUT SCHEMA (For 100% Accurate Formatting)
 # ---------------------------------------------------------
 class InvoiceItem(BaseModel):
     sno: str = Field(description="Serial number")
@@ -44,19 +42,18 @@ if not api_key:
     st.error("⚠️ GEMINI_API_KEY not found in Secrets.")
     st.stop()
 
-# Naye tarike se Gemini Client initialize karna
+# Initialize Client
 client = genai.Client(api_key=api_key)
 
 def extract_data_from_image(image_file):
-    # Image ko Base64 format mein convert karna (Naye API requirement ke hisaab se)
     image_bytes = image_file.getvalue()
     image_b64 = base64.b64encode(image_bytes).decode("utf-8")
-    mime_type = image_file.type # e.g., 'image/jpeg' or 'image/png'
+    mime_type = image_file.type 
     
     try:
-        # Naya Interactions API (With Structured Output)
+        # Changed to the most stable and fastest production model
         interaction = client.interactions.create(
-            model="gemini-3.8-flash",  # Latest doc model
+            model="gemini-1.5-flash", 
             input=[
                 {"type": "text", "text": "Extract all data from this handwritten invoice exactly as per the schema."},
                 {"type": "image", "data": image_b64, "mime_type": mime_type}
@@ -67,8 +64,6 @@ def extract_data_from_image(image_file):
                 "schema": InvoiceData.model_json_schema()
             }
         )
-        
-        # Pydantic schema ki wajah se response hamesha valid JSON hoga
         return json.loads(interaction.output_text)
     
     except Exception as e:
@@ -84,8 +79,8 @@ template_file = st.file_uploader("Upload Word Template (.docx)", type=["docx"])
 if img_file and template_file:
     st.image(img_file, caption="Uploaded Invoice", use_container_width=True)
     
-    if st.button("🔄 Convert to Word Invoice"):
-        with st.spinner("Extracting data using latest Gemini SDK..."):
+    if st.button("🔄 Fast Convert to Word Invoice"):
+        with st.spinner("Extracting data rapidly..."):
             extracted_data = extract_data_from_image(img_file)
             
         if extracted_data:
