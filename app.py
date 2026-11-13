@@ -14,8 +14,37 @@ if not api_key:
     st.stop()
 
 genai.configure(api_key=api_key)
-# Using the most stable model name
-model = genai.GenerativeModel('gemini-1.5-flash')
+
+# -----------------------------------------------------------------
+# AUTO-DETECT MODEL: Ye khud check karega ki aapke paas kaunsa model hai
+# -----------------------------------------------------------------
+def get_best_model():
+    available_models = []
+    try:
+        for m in genai.list_models():
+            if 'generateContent' in m.supported_generation_methods:
+                available_models.append(m.name)
+    except Exception as e:
+        st.error(f"API Check Error: {e}")
+        return "gemini-1.5-pro"
+
+    if 'models/gemini-1.5-flash' in available_models:
+        return 'gemini-1.5-flash'
+    elif 'models/gemini-1.5-pro' in available_models:
+        return 'gemini-1.5-pro'
+    elif 'models/gemini-1.5-flash-latest' in available_models:
+        return 'gemini-1.5-flash-latest'
+    elif 'models/gemini-pro-vision' in available_models:
+        return 'gemini-pro-vision'
+    elif len(available_models) > 0:
+        return available_models[0].replace('models/', '') 
+    else:
+        return 'gemini-1.5-flash' 
+
+best_model_name = get_best_model()
+model = genai.GenerativeModel(best_model_name)
+st.success(f"🤖 Connected to Available Model: {best_model_name}")
+# -----------------------------------------------------------------
 
 def extract_data_from_image(image):
     prompt = """
