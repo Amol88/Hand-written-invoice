@@ -5,19 +5,16 @@ from PIL import Image
 import json
 import io
 
-# Streamlit page configuration
-st.set_page_config(page_title="Handwritten to Word Invoice", layout="centered", page_icon="📄")
+st.set_page_config(page_title="Handwritten to Word Invoice", layout="centered")
 st.title("📄 Handwritten Invoice to Word Document")
-st.markdown("Upload a handwritten invoice image and a Word template to auto-generate a typed invoice.")
 
-# Fetching API Key from Streamlit Secrets
 api_key = st.secrets.get("GEMINI_API_KEY") 
 if not api_key:
-    st.error("⚠️ GEMINI_API_KEY not found! Please add it to Streamlit Secrets.")
+    st.error("⚠️ GEMINI_API_KEY not found in Secrets.")
     st.stop()
 
-model = genai.GenerativeModel('gemini-1.5-flash-latest')
 genai.configure(api_key=api_key)
+# Using the most stable model name
 model = genai.GenerativeModel('gemini-1.5-flash')
 
 def extract_data_from_image(image):
@@ -41,47 +38,33 @@ def extract_data_from_image(image):
     """
     try:
         response = model.generate_content([prompt, image])
-        # Clean up output to ensure valid JSON
         json_text = response.text.replace('```json', '').replace('```', '').strip()
         return json.loads(json_text)
     except Exception as e:
         st.error(f"Error during AI extraction: {e}")
         return None
 
-# UI for File Uploads
-st.subheader("1. Upload Handwritten Invoice (Image)")
 img_file = st.file_uploader("Upload Image (JPG/PNG)", type=["jpg", "jpeg", "png"])
+template_file = st.file_uploader("Upload Word Template (.docx)", type=["docx"])
 
-st.subheader("2. Upload Word Template (.docx)")
-template_file = st.file_uploader("Upload Word Template", type=["docx"])
-
-# Processing logic
 if img_file and template_file:
     image = Image.open(img_file)
-    st.image(image, caption="Uploaded Handwritten Invoice", use_container_width=True)
+    st.image(image, caption="Uploaded Invoice", use_container_width=True)
     
     if st.button("🔄 Convert to Word Invoice"):
-        with st.spinner("Analyzing handwriting using Gemini AI..."):
+        with st.spinner("Extracting data..."):
             extracted_data = extract_data_from_image(image)
             
         if extracted_data:
-            st.success("✅ Data extracted successfully!")
-            
-            with st.expander("View Extracted Data"):
-                st.json(extracted_data)
-            
+            st.success("✅ Data extracted!")
             with st.spinner("Generating Word Document..."):
                 try:
-                    # Load template and render data
                     doc = DocxTemplate(template_file)
                     doc.render(extracted_data)
-                    
-                    # Save to memory
                     output = io.BytesIO()
                     doc.save(output)
                     output.seek(0)
                     
-                    # Download button
                     st.download_button(
                         label="⬇️ Download Converted Word Invoice",
                         data=output,
@@ -89,4 +72,4 @@ if img_file and template_file:
                         mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document"
                     )
                 except Exception as e:
-                    st.error(f"Error generating Word file: {e}")
+                    st.error(f"Template Error: {e}")
